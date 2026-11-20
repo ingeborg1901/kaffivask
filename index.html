@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f7f4ed" />
+  <title>Kaffevakta – dagens kaffemaskin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+    :root { --ink:#252922; --muted:#72776d; --cream:#f7f4ed; --card:#fffefa; --green:#315d45; --line:#e8e4d9; --orange:#c97943; }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; color:var(--ink); background:var(--cream); font-family:'DM Sans',sans-serif; }
+    .page { width:min(1080px, calc(100% - 40px)); margin:auto; padding:30px 0 42px; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:45px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:700; letter-spacing:-.03em; font-size:18px; }
+    .brand-icon { width:39px; height:39px; display:grid; place-items:center; border-radius:13px; background:#e5eddf; font-size:20px; }
+    .today { color:var(--muted); font-size:13px; font-weight:600; }
+    main { display:grid; grid-template-columns: .9fr 1.1fr; gap:60px; align-items:center; }
+    .eyebrow { color:var(--green); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.13em; display:flex; align-items:center; gap:9px; margin:0 0 16px; }
+    .eyebrow:before { content:''; width:21px; height:2px; background:var(--green); }
+    h1 { font:800 clamp(39px,5.5vw,65px)/1.04 'Manrope',sans-serif; letter-spacing:-.065em; margin:0 0 18px; }
+    .intro { display:none; }
+    .status { display:inline-flex; align-items:center; gap:9px; border:1px solid var(--line); background:rgba(255,254,250,.7); border-radius:999px; padding:9px 14px; color:#555b51; font-size:13px; font-weight:600; }
+    .dot { width:8px; height:8px; background:var(--orange); border-radius:50%; box-shadow:0 0 0 4px #f7e9dc; }
+    .status.done .dot { background:#4c8b5e; box-shadow:0 0 0 4px #e0eee2; }
+    .machine-wrap { position:relative; }
+    .machine-card { min-height:396px; overflow:hidden; border-radius:25px; background:#e8e6dc; position:relative; box-shadow:0 22px 50px rgba(46,51,40,.11); }
+    .machine-card img { width:100%; height:396px; object-fit:cover; display:block; }
+    .image-caption { position:absolute; left:18px; bottom:18px; padding:9px 13px; border-radius:99px; background:rgba(255,254,250,.9); backdrop-filter:blur(8px); font-size:12px; font-weight:700; }
+    .floating-note { position:absolute; right:-17px; top:24px; background:var(--card); border-radius:14px; padding:13px 16px; box-shadow:0 9px 26px #25292218; font-size:12px; color:var(--muted); }
+    .floating-note strong { color:var(--ink); display:block; font-size:14px; margin-bottom:3px; }
+    .panel { margin-top:28px; padding:23px; background:var(--card); border:1px solid #eeebe2; border-radius:18px; box-shadow:0 8px 25px #34382b08; }
+    .panel h2 { font:700 18px 'Manrope',sans-serif; letter-spacing:-.03em; margin:0 0 6px; }
+    .panel p { font-size:13px; color:var(--muted); margin:0 0 17px; line-height:1.5; }
+    form { display:flex; gap:9px; }
+    input { flex:1; min-width:0; border:1px solid #dedfd5; border-radius:10px; padding:12px 13px; font:500 14px 'DM Sans',sans-serif; color:var(--ink); background:#fff; outline:none; }
+    input:focus { border-color:#76927c; box-shadow:0 0 0 3px #e8efe7; }
+    button { border:0; border-radius:10px; padding:0 18px; color:white; background:var(--green); font:700 13px 'DM Sans',sans-serif; cursor:pointer; transition:background .2s,transform .2s; }
+    button:hover { background:#254a36; transform:translateY(-1px); }
+    button:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .helper { margin-top:11px!important; margin-bottom:0!important; font-size:11px!important; }
+    .thanks { display:none; align-items:center; gap:11px; color:var(--green); font-size:14px; font-weight:700; }
+    .thanks.visible { display:flex; }
+    .check { width:30px; height:30px; border-radius:50%; background:#e4efe5; display:grid; place-items:center; }
+    footer { margin-top:45px; border-top:1px solid var(--line); padding-top:16px; color:#8a8c83; display:flex; justify-content:space-between; font-size:11px; }
+    @media (max-width:760px) { .page { width:min(550px,calc(100% - 32px)); padding-top:20px } header { margin-bottom:33px } main { grid-template-columns:1fr; gap:26px } h1 { font-size:48px } .intro { margin-bottom:18px } .machine-card,.machine-card img { min-height:0; height:300px } .floating-note { right:10px; top:12px } .panel { margin-top:20px } footer { margin-top:32px } }
+    @media (max-width:400px) { form { flex-direction:column } button { padding:13px } .today { font-size:11px } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand"><span class="brand-icon">☕</span> kaffevakta</div>
+      <div class="today" id="today"></div>
+    </header>
+    <main>
+      <section>
+        <p class="eyebrow">Dagens kaffepause</p>
+        <h1 id="headline">Er kaffemaskinen vasket?</h1>
+        <p class="intro" id="intro">En ren kaffemaskin gjør starten på neste kopp litt bedre. Har du tatt dagens vask? Registrer det her.</p>
+        <div class="status" id="status"><span class="dot"></span><span id="statusText">Ikke vasket ennå</span></div>
+        <div class="panel" id="panel">
+          <h2>Har du vasket den?</h2>
+          <p>Skriv inn navnet ditt, så oppdaterer vi dagens status.</p>
+          <form id="washForm">
+            <input id="name" name="name" autocomplete="name" maxlength="60" placeholder="Ditt navn" required />
+            <button type="submit">Registrer vask</button>
+          </form>
+          <p class="helper">Statusen gjelder for i dag og starter på nytt i morgen.</p>
+          <div class="thanks" id="thanks"><span class="check">✓</span><span id="thanksText"></span></div>
+        </div>
+      </section>
+      <section class="machine-wrap" aria-label="Dagens kaffemaskin">
+        <div class="machine-card">
+          <img id="machineImage" alt="En kaffemaskin som venter på å bli vasket" />
+          <span class="image-caption" id="imageCaption">Venter på dagens vask</span>
+        </div>
+        <div class="floating-note" id="floatingNote" hidden><strong>En liten innsats</strong>gjør stor forskjell ☀️</div>
+      </section>
+    </main>
+    <footer><span>En liten påminnelse om en hyggeligere kaffepause.</span><span>☕</span></footer>
+  </div>
+  <script>
+    // Inline illustrations keep the page self-contained and work without external image services.
+    function machineSvg(clean) {
+      const bg = clean ? '#dce9d9' : '#e9ded0';
+      const steam = clean ? '<path d="M278 88c-18-18 14-24 0-44M312 82c-14-15 14-23 2-39" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".8"/>' : '';
+      const dirt = clean ? '' : '<g fill="#765039" opacity=".9"><circle cx="250" cy="218" r="8"/><circle cx="278" cy="231" r="5"/><circle cx="324" cy="215" r="7"/><circle cx="151" cy="225" r="5"/><circle cx="341" cy="251" r="4"/><path d="M214 288q18-12 36 0t37 0" fill="none" stroke="#765039" stroke-width="8" stroke-linecap="round"/><path d="M129 258q17-10 27 1t-3 18q-13 5-24-2zM332 299q11-8 23 0l-4 13h-20z"/><path d="M0 384q40-17 82-4t71 0q25-10 49 1t58-1q32-15 60-2t67 1q47-19 93 2v119H0z" fill="#9b6c46" opacity=".55"/><path d="M33 431q26-10 44 3m58 24q20-10 39 0m139-38q23-13 47 0m44 45q22-11 43 0" fill="none" stroke="#68452f" stroke-width="8" stroke-linecap="round" opacity=".65"/></g><path d="M0 390q85-25 160 0t160 0 160 0v110H0z" fill="#b89b79" opacity=".4"/>';
+      const cup = clean ? '#f7f4e9' : '#ddd5c8';
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 500"><rect width="480" height="500" fill="${bg}"/><circle cx="399" cy="85" r="45" fill="#fff" opacity=".22"/><path d="M0 366q100-28 205 0t275 0v134H0z" fill="${clean?'#b6c5ae':'#c7b69e'}"/><rect x="92" y="113" width="296" height="277" rx="29" fill="#323b38"/><rect x="111" y="132" width="258" height="238" rx="18" fill="#e9e8df"/><rect x="130" y="151" width="220" height="96" rx="10" fill="#c4d1c6"/><rect x="148" y="167" width="80" height="11" rx="5" fill="#899a8b"/><rect x="148" y="187" width="132" height="7" rx="3" fill="#a5b1a4"/><circle cx="322" cy="188" r="13" fill="#567761"/><path d="M203 247v35h70v-35" fill="#68726c"/><rect x="166" y="278" width="145" height="9" rx="4" fill="#9da49c"/><rect x="185" y="288" width="104" height="60" rx="7" fill="#4b514d"/><rect x="207" y="310" width="60" height="37" rx="4" fill="${cup}"/><path d="M267 317h13a11 11 0 0 1 0 22h-13" fill="none" stroke="${cup}" stroke-width="6"/><rect x="193" y="351" width="88" height="7" rx="3" fill="#b2b5ac"/><circle cx="132" cy="304" r="9" fill="#a8afa6"/><circle cx="132" cy="330" r="9" fill="#a8afa6"/>${steam}${dirt}<path d="M95 390h290" stroke="#fff" stroke-opacity=".28" stroke-width="3"/></svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+    const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(new Date());
+    document.getElementById('today').textContent = new Intl.DateTimeFormat('nb-NO', { weekday:'long', day:'numeric', month:'long', timeZone:'Europe/Oslo' }).format(new Date());
+    const storageKey = 'kaffevakta-wash-' + todayKey;
+    const saved = localStorage.getItem(storageKey);
+    const image = document.getElementById('machineImage');
+    const status = document.getElementById('status');
+    const form = document.getElementById('washForm');
+    const panel = document.getElementById('panel');
+    function showWashed(name, justRegistered = false) {
+      image.src = machineSvg(true);
+      image.alt = 'Ren kaffemaskin, vasket av ' + name;
+      document.getElementById('imageCaption').textContent = 'Ren og klar for kaffe';
+      document.getElementById('headline').textContent = 'Kaffemaskinen er vasket!';
+      document.getElementById('intro').textContent = 'Takk, ' + name + ' – du har gjort kaffepausen litt hyggeligere for alle.';
+      document.getElementById('statusText').textContent = 'Vasket av ' + name;
+      status.classList.add('done');
+      document.getElementById('floatingNote').innerHTML = '<strong>Takk for innsatsen!</strong>Maskinen er klar ☕';
+      if (justRegistered) {
+        form.style.display = 'none';
+        panel.querySelector('h2').style.display = 'none';
+        panel.querySelector('p').style.display = 'none';
+        document.getElementById('thanksText').textContent = 'Registrert – takk, ' + name + '!';
+        document.getElementById('thanks').classList.add('visible');
+      } else {
+        form.style.display = 'none';
+        panel.querySelector('h2').textContent = 'Dagens vask er registrert';
+        panel.querySelector('p').textContent = 'Maskinen ble vasket av ' + name + '.';
+        panel.querySelector('.helper').style.display = 'none';
+      }
+    }
+    if (saved) showWashed(saved);
+    else {
+      image.src = machineSvg(false);
+      image.alt = 'Kaffemaskin som trenger vask';
+    }
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      if (!name) return;
+      localStorage.setItem(storageKey, name);
+      showWashed(name, true);
+    });
+  </script>
+</body>
+</html>
